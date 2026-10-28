@@ -1,0 +1,6 @@
+# Core dashboard/RAG uses Python standard library.
+# Optional integrations:
+openai>=1.30.0
+arize-phoenix>=4.0.0
+openinference-instrumentation-openai>=0.1.0
+litellm[proxy]>=1.40.0

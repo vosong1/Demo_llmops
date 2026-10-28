@@ -1,0 +1,12 @@
+[tool.ruff]
+line-length = 200
+target-version = "py310"
+extend-exclude = ["__pycache__"]
+
+[tool.ruff.lint]
+# dashboard.py viết dày đặc (nhiều lệnh trên một dòng) nên chỉ bắt lỗi thật: cú pháp, tên chưa định nghĩa, import thừa
+select = ["E9", "F"]
+ignore = ["F401", "F841"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

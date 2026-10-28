@@ -1,0 +1,34 @@
+model_list:
+  - model_name: qwen-3b
+    litellm_params:
+      model: ollama_chat/qwen2.5:3b
+      api_base: http://localhost:11434
+      rpm: 60
+  - model_name: qwen-7b
+    litellm_params:
+      model: ollama_chat/qwen2.5:7b
+      api_base: http://localhost:11434
+      rpm: 30
+  - model_name: gemini-flash
+    litellm_params:
+      model: gemini/gemini-3.8-flash
+      api_key: os.environ/GEMINI_API_KEY         # đặt trong .env, không ghi khóa vào file này
+      rpm: 10                                    # giới hạn số request mỗi phút, chỉnh theo gói của bạn
+      tpm: 100000                                # giới hạn số token mỗi phút
+
+  # Mẫu thêm model cloud khác. LiteLLM cần tiền tố nhà cung cấp hợp lệ trong `model:`
+  # (xem https://docs.litellm.ai/docs/providers); thiếu tiền tố sẽ báo "LLM Provider NOT provided".
+  # - model_name: customllm
+  #   litellm_params:
+  #     model: <provider>/<ten-model>
+  #     api_key: os.environ/CUSTOMLLM_API_KEY
+  #     rpm: 10
+  #     tpm: 100000
+
+litellm_settings:
+  num_retries: 2
+  request_timeout: 300
+  fallbacks: [{"qwen-7b": ["qwen-3b"]}]          # 7b lỗi thì chuyển sang 3b (không đặt dự phòng cho cloud để tính chi phí đúng)
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
