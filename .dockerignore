@@ -1,0 +1,21 @@
+# Không đưa bí mật, dữ liệu người dùng và rác vào image
+.git
+.github
+.env
+.env.*
+!.env.example
+users.json
+chats/
+logs/
+docs/
+results.md
+results_*.csv
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+node_modules/
+tests/
+*.zip

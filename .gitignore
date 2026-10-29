@@ -1,11 +1,14 @@
 # Bí mật và cấu hình máy
 .env
+.env.*
+!.env.example
 
 # Dữ liệu người dùng và vận hành (có hash mật khẩu, nội dung chat, log)
 users.json
 chats/
 logs/*
 !logs/.gitkeep
+data/
 
 # Kho tài liệu nội bộ (giữ thư mục, bỏ nội dung)
 docs/*
@@ -23,3 +26,6 @@ __pycache__/
 .venv/
 venv/
 node_modules/
+
+# Gói nén gửi qua lại (dễ vô tình chứa .env, users.json)
+*.zip

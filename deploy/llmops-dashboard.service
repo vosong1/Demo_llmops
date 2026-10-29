@@ -1,0 +1,35 @@
+# systemd unit cho dashboard trên Linux (không dùng Docker).
+# Cài đặt (xem DEPLOY.md, mục "Linux không Docker"):
+#   sudo useradd --system --home /var/lib/llmops --create-home llmops
+#   sudo cp deploy/llmops-dashboard.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now llmops-dashboard
+[Unit]
+Description=LLMOps Workbench dashboard
+After=network-online.target ollama.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=llmops
+Group=llmops
+WorkingDirectory=/opt/llmops
+# .env phải có LITELLM_MASTER_KEY (sinh bằng: python3 scripts/init_env.py)
+EnvironmentFile=/opt/llmops/.env
+Environment=NO_BROWSER=1
+Environment=DATA_DIR=/var/lib/llmops
+Environment=HOME=/var/lib/llmops
+ExecStart=/opt/llmops/.venv/bin/python dashboard.py --no-browser
+Restart=on-failure
+RestartSec=3
+KillSignal=SIGTERM
+TimeoutStopSec=20
+
+# Hạn chế quyền
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/llmops
+
+[Install]
+WantedBy=multi-user.target

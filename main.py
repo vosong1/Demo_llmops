@@ -11,7 +11,7 @@ import argparse, json, os, shutil, subprocess, sys, urllib.request
 import settings
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-HOST = f"http://localhost:{settings.OLLAMA_PORT}"
+HOST = settings.OLLAMA_URL
 
 def installed_models():
     try:
@@ -35,7 +35,7 @@ def main():
 
     have = installed_models()
     if have is None:
-        sys.exit(f"Không kết nối được Ollama tại localhost:{settings.OLLAMA_PORT}. Hãy mở Ollama trước.")
+        sys.exit(f"Không kết nối được Ollama tại {settings.OLLAMA_URL}. Hãy mở Ollama trước.")
     todo = [m for m in a.models if any(h == m or h.startswith(m + ":") for h in have)]
     for m in set(a.models) - set(todo):
         print(f"[bỏ qua] chưa có model {m}. Tải bằng: ollama pull {m}")
@@ -50,7 +50,7 @@ def main():
     if a.gateway:
         print("\n== 1b. GATEWAY: đo qua LiteLLM (so với trực tiếp để thấy overhead) ==")
         try:
-            urllib.request.urlopen(f"http://localhost:{settings.GW_PORT}/health/liveliness", timeout=5); gw_up = True
+            urllib.request.urlopen(f"{settings.GW_URL}/health/liveliness", timeout=5); gw_up = True
         except Exception:
             print("LiteLLM chưa chạy. Mở cửa sổ khác: litellm --config litellm_config.yaml --host 127.0.0.1 --port 4000")
         alias = {"qwen2.5:3b": "qwen-3b", "qwen2.5:7b": "qwen-7b"}

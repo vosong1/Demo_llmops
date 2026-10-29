@@ -61,11 +61,11 @@ def pct(xs, p):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True)
-    ap.add_argument("--host", default=f"http://localhost:{settings.OLLAMA_PORT}")
+    ap.add_argument("--host", default=settings.OLLAMA_URL)
     ap.add_argument("--concurrency", type=int, nargs="+", default=[1, 5])
     ap.add_argument("--num-predict", type=int, default=256)
     ap.add_argument("--gateway", action="store_true", help="gọi qua LiteLLM; --model dùng alias (qwen-3b, qwen-7b)")
-    ap.add_argument("--gateway-url", default=f"http://localhost:{settings.GW_PORT}")
+    ap.add_argument("--gateway-url", default=settings.GW_URL)
     ap.add_argument("--api-key", default=settings.GW_KEY)
     a = ap.parse_args()
     url = a.host + "/api/generate"

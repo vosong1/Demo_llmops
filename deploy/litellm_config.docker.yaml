@@ -1,0 +1,27 @@
+# Cấu hình LiteLLM cho Docker Compose (khác bản ở thư mục gốc ở chỗ api_base trỏ tới container "ollama").
+# Alias (model_name) phải khớp trường "alias" trong models.json.
+model_list:
+  - model_name: qwen-3b
+    litellm_params:
+      model: ollama_chat/qwen2.5:3b
+      api_base: http://ollama:11434
+      rpm: 60
+  - model_name: qwen-7b
+    litellm_params:
+      model: ollama_chat/qwen2.5:7b
+      api_base: http://ollama:11434
+      rpm: 30
+  - model_name: gemini-flash
+    litellm_params:
+      model: gemini/gemini-3.8-flash          # kiểm tra lại đúng tên model theo tài khoản Gemini của bạn
+      api_key: os.environ/GEMINI_API_KEY      # đặt trong .env, không ghi khóa vào file này
+      rpm: 10
+      tpm: 100000
+
+litellm_settings:
+  num_retries: 2
+  request_timeout: 300
+  fallbacks: [{"qwen-7b": ["qwen-3b"]}]
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY

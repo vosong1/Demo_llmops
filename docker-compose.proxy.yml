@@ -1,0 +1,24 @@
+# Lớp phủ HTTPS: Caddy tự xin và gia hạn chứng chỉ Let's Encrypt cho DOMAIN.
+# Trong .env cần: DOMAIN=llm.example.com  ALLOWED_HOSTS=llm.example.com  COOKIE_SECURE=1  TRUST_PROXY=1
+#   docker compose -f docker-compose.yml -f docker-compose.proxy.yml up -d
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?Đặt DOMAIN (ví dụ llm.example.com) trong .env}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - dashboard
+
+volumes:
+  caddy-data:
+    name: llmops-caddy-data
+  caddy-config:
+    name: llmops-caddy-config

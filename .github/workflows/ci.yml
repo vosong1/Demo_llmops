@@ -15,11 +15,31 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Cài công cụ kiểm thử
-        run: python -m pip install pytest ruff
+        run: python -m pip install pytest ruff pyyaml   # không cài requirements.txt (litellm, phoenix rất nặng, lõi không cần)
       - name: Lint (lỗi cú pháp, tên chưa định nghĩa)
         run: ruff check .
       - name: Kiểm thử
         run: python -m pytest -q
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image dashboard
+        run: docker build -t llmops-workbench:ci .
+      - name: Kiểm tra image chạy được và /healthz trả về ok
+        run: |
+          docker run -d --name wb -e LITELLM_MASTER_KEY=sk-ci -p 18765:8765 llmops-workbench:ci
+          for i in $(seq 1 20); do curl -fsS http://127.0.0.1:18765/healthz && break || sleep 1; done
+          curl -fsS http://127.0.0.1:18765/healthz | grep '"status": "ok"'
+          docker rm -f wb
+      - name: Kiểm tra cú pháp các file compose
+        run: |
+          cp .env.example .env
+          export LITELLM_MASTER_KEY=sk-ci DOMAIN=llm.example.com
+          docker compose config -q
+          docker compose -f docker-compose.yml -f docker-compose.gpu.yml config -q
+          docker compose -f docker-compose.yml -f docker-compose.proxy.yml config -q
 
   secrets:
     runs-on: ubuntu-latest

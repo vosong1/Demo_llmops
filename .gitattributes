@@ -1,0 +1,6 @@
+# Chuẩn hóa xuống dòng: repo lưu LF. .bat giữ CRLF để Windows chạy đúng.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.sh text eol=lf
+*.png binary
+*.jpg binary

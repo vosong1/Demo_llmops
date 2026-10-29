@@ -1,0 +1,12 @@
+# Reverse proxy HTTPS cho dashboard. {$DOMAIN} lấy từ biến môi trường DOMAIN (xem docker-compose.proxy.yml).
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Câu trả lời của model có thể mất vài phút (LiteLLM timeout 300s), Caddy không giới hạn thời gian phản hồi mặc định.
+	reverse_proxy dashboard:8765
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+}

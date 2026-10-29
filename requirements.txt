@@ -1,6 +1,7 @@
-# Core dashboard/RAG uses Python standard library.
-# Optional integrations:
-openai>=1.30.0
-arize-phoenix>=4.0.0
-openinference-instrumentation-openai>=0.1.0
-litellm[proxy]>=1.40.0
+# Lõi dashboard/RAG chỉ dùng thư viện chuẩn Python, không cần cài gì để chạy chat với Ollama.
+# Các tích hợp tùy chọn khi chạy trực tiếp trên máy (không Docker):
+openai>=1.30.0                              # gọi model bằng SDK OpenAI
+litellm[proxy]>=1.40.0                      # gateway (nặng, chỉ cần khi dùng LiteLLM)
+arize-phoenix>=4.0.0                        # Phoenix server + trace UI (nặng)
+openinference-instrumentation-openai>=0.1.0 # tự động gắn trace cho SDK OpenAI
+# Docker không dùng file này: xem requirements-docker.txt

@@ -1,0 +1,22 @@
+# Lớp phủ GPU NVIDIA cho Ollama. Cần NVIDIA driver + NVIDIA Container Toolkit trên máy chủ (xem DEPLOY.md).
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+services:
+  ollama:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # Tùy chọn: để bảng GPU/VRAM của dashboard đọc được nvidia-smi, bỏ comment đoạn dưới
+  # (cần NVIDIA runtime đã đăng ký với Docker; không chắc chạy trên Docker Desktop).
+  # Nếu không bật, bảng GPU báo "không khả dụng" nhưng chat vẫn chạy bình thường;
+  # xem GPU bằng: docker compose exec ollama nvidia-smi
+  #
+  # dashboard:
+  #   runtime: nvidia
+  #   environment:
+  #     NVIDIA_VISIBLE_DEVICES: all
+  #     NVIDIA_DRIVER_CAPABILITIES: utility

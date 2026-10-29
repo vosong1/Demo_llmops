@@ -1,0 +1,6 @@
+# Thư viện cho image dashboard. Lõi dashboard/RAG chỉ dùng thư viện chuẩn Python;
+# các gói dưới đây là tùy chọn nhưng nên có: gọi model bằng SDK OpenAI và gửi trace sang Phoenix.
+# LiteLLM, Phoenix, Ollama chạy ở container riêng nên KHÔNG cài ở đây.
+openai>=1.30.0
+arize-phoenix-otel
+openinference-instrumentation-openai>=0.1.0

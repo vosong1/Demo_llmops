@@ -1,0 +1,28 @@
+# Ví dụ nginx đứng trước dashboard (khi không dùng Caddy). Thay llm.example.com và đường dẫn chứng chỉ.
+# Trong .env của dashboard: ALLOWED_HOSTS=llm.example.com  COOKIE_SECURE=1  TRUST_PROXY=1
+server {
+    listen 80;
+    server_name llm.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name llm.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/llm.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/llm.example.com/privkey.pem;
+
+    client_max_body_size 4m;            # nạp tài liệu tối đa 2 MB (dashboard từ chối >3 MB)
+    add_header Strict-Transport-Security "max-age=31536000" always;
+
+    location / {
+        proxy_pass http://127.0.0.1:8765;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;                                   # phải khớp ALLOWED_HOSTS
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;   # dashboard (TRUST_PROXY=1) lấy IP ở cuối chuỗi
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 330s;        # model chạy chậm: LiteLLM timeout 300s
+        proxy_send_timeout 330s;
+    }
+}

@@ -1,0 +1,93 @@
+# LLMOps Workbench: dashboard + Ollama + LiteLLM (+ Phoenix tùy chọn).
+#
+#   python scripts/init_env.py          # tạo .env và sinh LITELLM_MASTER_KEY
+#   docker compose up -d --build
+#   docker compose run --rm ollama-pull # tải model (mặc định qwen2.5:3b; đổi bằng PULL_MODELS trong .env)
+#   mở http://localhost:8765
+#
+# Thêm Phoenix:  docker compose --profile observability up -d
+# Có GPU NVIDIA: docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+# HTTPS + domain: docker compose -f docker-compose.yml -f docker-compose.proxy.yml up -d  (xem DEPLOY.md)
+name: llmops
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    # Không publish cổng 11434: Ollama không có xác thực, chỉ cho các container cùng mạng truy cập.
+    volumes:
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+  # Tác vụ chạy một lần để tải model: docker compose run --rm ollama-pull
+  ollama-pull:
+    image: ollama/ollama:latest
+    profiles: ["tools"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      PULL_MODELS: ${PULL_MODELS:-qwen2.5:3b}
+    entrypoint: ["/bin/sh", "-c"]
+    command: ['for m in $$PULL_MODELS; do echo "== pull $$m"; ollama pull "$$m"; done']
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    restart: unless-stopped
+    # Không publish cổng 4000: chỉ dashboard (cùng mạng) gọi tới. Cần gọi từ ngoài thì thêm ports: ["127.0.0.1:4000:4000"].
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    env_file: .env          # GEMINI_API_KEY và các khóa nhà cung cấp khác
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?Chạy python scripts/init_env.py hoặc đặt LITELLM_MASTER_KEY trong .env}
+    volumes:
+      - ./deploy/litellm_config.docker.yaml:/app/config.yaml:ro
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    profiles: ["observability"]
+    restart: unless-stopped
+    # Phoenix mặc định không có đăng nhập: chỉ publish ra 127.0.0.1, đừng mở ra Internet.
+    ports:
+      - "127.0.0.1:${PHOENIX_PORT:-6006}:6006"
+    environment:
+      PHOENIX_WORKING_DIR: /mnt/data
+    volumes:
+      - phoenix-data:/mnt/data
+
+  dashboard:
+    build: .
+    image: llmops-workbench:local
+    restart: unless-stopped
+    ports:
+      # Chỉ lắng nghe trên máy chủ. Muốn truy cập từ xa hãy dùng reverse proxy có HTTPS (docker-compose.proxy.yml).
+      - "127.0.0.1:${DASHBOARD_PORT:-8765}:8765"
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?Chạy python scripts/init_env.py hoặc đặt LITELLM_MASTER_KEY trong .env}
+      OLLAMA_URL: http://ollama:11434
+      LITELLM_URL: http://litellm:4000
+      PHOENIX_URL: http://phoenix:6006
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-}
+      COOKIE_SECURE: ${COOKIE_SECURE:-0}
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+    volumes:
+      - llmops-data:/data
+    depends_on:
+      - ollama
+      - litellm
+
+volumes:
+  llmops-data:
+    name: llmops-data
+  ollama-models:
+    name: llmops-ollama-models
+  phoenix-data:
+    name: llmops-phoenix-data

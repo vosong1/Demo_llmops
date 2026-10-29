@@ -1,0 +1,43 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Đăng nhập · LLMOps Workbench</title>
+<style>
+:root{color-scheme:dark;--bg:#090d18;--ink:#edf2ff;--mute:#94a3b8;--line:#263247;--accent:#8b9cff;--accent2:#6d7cff;--warn:#fb923c}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(900px 500px at 15% -10%,#1b2750 0,transparent 60%),var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
+.lang{position:absolute;right:18px;top:18px;display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}.lang button{border:0;border-radius:0;padding:5px 11px;font:inherit;font-size:12px;background:transparent;color:var(--mute);cursor:pointer;width:auto}.lang button[aria-pressed=true]{background:#222e4a;color:#fff}
+.card{position:relative;width:100%;max-width:410px;background:linear-gradient(160deg,#141d2f,#0f1626 70%);border:1px solid var(--line);border-radius:20px;padding:30px 28px 24px;box-shadow:0 24px 60px #0006}
+h1{margin:0 0 4px;font-size:23px;letter-spacing:-.5px}h1 span{color:var(--accent)}.sub{margin:0 0 22px;color:var(--mute);font-size:13px}
+label{display:block;margin:0 0 14px;color:var(--mute);font-size:12px}
+label input{display:block;width:100%;margin-top:6px;padding:11px 13px;border-radius:11px;border:1px solid #34415b;background:#0c1321;color:var(--ink);font:inherit;font-size:14px}
+label input:focus{outline:2px solid var(--accent);outline-offset:1px}
+label.chk{display:flex;align-items:center;gap:8px;margin:-2px 0 16px}label.chk input{display:inline-block;width:auto;margin:0}
+button.main{width:100%;padding:12px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--accent2),#8b6dff);color:#fff;font:inherit;font-weight:650;cursor:pointer}
+button.main:disabled{opacity:.55;cursor:default}button.main:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#err{margin:0 0 12px;color:var(--warn);font-size:13px}#err:empty{display:none}
+.note{margin-top:16px;color:var(--mute);font-size:12px}.ver{margin-top:14px;text-align:center;color:#5b6a86;font-size:11px}
+</style></head><body><main class="card">
+<div class="lang" role="group" aria-label="Language"><button type="button" data-lang="vi" aria-pressed="true">VI</button><button type="button" data-lang="en" aria-pressed="false">EN</button></div>
+<h1>LLMOps <span>Workbench</span></h1><p class="sub" id="sub"></p>
+<form id="f"><label>Tên đăng nhập<input name="username" id="un" autocomplete="username" autofocus required maxlength="32"></label>
+<label>Mật khẩu<input name="password" id="pw" type="password" autocomplete="current-password" required maxlength="128"></label>
+<label id="l2" hidden>Nhập lại mật khẩu<input name="password2" id="pw2" type="password" autocomplete="new-password" maxlength="128"></label>
+<label class="chk"><input type="checkbox" id="show"> Hiện mật khẩu</label>
+<div id="err" role="alert"></div><button class="main" id="go" type="submit">Đăng nhập</button></form>
+<div class="note" id="note"></div><div class="ver">build __BUILD__</div></main>
+<script>
+/*__I18N__*/
+const MODE='__MODE__',$=s=>document.querySelector(s);
+const setup=MODE==='setup';
+$('#sub').textContent=setup?'Chưa có tài khoản nào. Tạo tài khoản quản trị đầu tiên để bắt đầu.':'Đăng nhập để tiếp tục.';
+$('#go').textContent=setup?'Tạo tài khoản quản trị':'Đăng nhập';
+$('#l2').hidden=!setup;$('#pw').autocomplete=setup?'new-password':'current-password';
+if(setup)$('#note').textContent='Tài khoản này có toàn quyền. Hãy nhớ mật khẩu. Nếu quên, chạy: python dashboard.py --set-password TÊN';
+$('#show').onchange=e=>{$('#pw').type=$('#pw2').type=e.target.checked?'text':'password'};
+$('#f').onsubmit=async e=>{e.preventDefault();const err=$('#err'),b=$('#go');err.textContent='';
+ const u=$('#un').value.trim(),p=$('#pw').value;
+ if(setup){if(p.length<8){err.textContent='Mật khẩu cần tối thiểu 8 ký tự.';return}if(p!==$('#pw2').value){err.textContent='Hai mật khẩu không khớp.';return}}
+ b.disabled=true;b.textContent='Đang xử lý…';
+ try{const r=await fetch(setup?'/api/setup':'/api/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Requested-With':'dashboard'},body:JSON.stringify({username:u,password:p})});
+  const j=await r.json();if(j.ok){location.reload();return}err.textContent=j.error||'Không đăng nhập được.'}
+ catch(x){err.textContent='Không kết nối được máy chủ.'}
+ b.disabled=false;b.textContent=setup?'Tạo tài khoản quản trị':'Đăng nhập'};
+</script></body></html>
